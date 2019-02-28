@@ -1,0 +1,240 @@
+---
+title: "EDLD610_FinalProj"
+author: "Andrew Fridman"
+date: "February 27, 2019"
+output: html_document
+---
+
+```{r Setup, include = FALSE}
+#Load libraries
+library(colorblindr)
+library(dplyr)
+library(here)
+library(ggplot2)
+library(gsubfn)
+library(lubridate)
+library(psych)
+library(rio)
+library(snakecase)
+library(tidyverse)
+```
+
+```{r Import data}
+#Import arabica data
+arabica <- rio::import("arabica_data_cleaned.csv")
+colnames(arabica) <- tolower(colnames(arabica))
+#View(arabica)
+
+#Import robusta data
+robusta <- rio::import("robusta_data_cleaned.csv") 
+colnames(robusta) <- tolower(colnames(robusta))
+#View(robusta)
+```
+
+```{r Clean-up data}
+#Tidy arabica data
+arabica_t <- arabica %>% 
+                     select(species, country.of.origin, aroma, flavor, aftertaste,       
+                            acidity, body, balance, uniformity, clean.cup, sweetness, cupper.points, 
+                            total.cup.points) %>%
+                     rename(country = "country.of.origin",
+                            clean = "clean.cup",
+                            cupper_points = "cupper.points",
+                            total_points = "total.cup.points") %>% 
+                     filter(total_points > 0 & 
+                            country != "") %>% 
+                     mutate(country = as.factor(country),
+                            species = as.factor(species)) %>% 
+                     mutate(country = fct_recode(country, "Ivory Coast" = "Cote d?Ivoire"),
+                            country = fct_recode(country, "Tanzania" = "Tanzania, United Republic Of"))
+  
+#Tidy arabica data
+robusta_t <- robusta %>% 
+                     select(species, country.of.origin, fragrance...aroma, flavor,
+                            aftertaste, salt...acid, mouthfeel, balance, uniform.cup, clean.cup, 
+                            bitter...sweet, cupper.points, total.cup.points) %>% 
+                       rename(country = "country.of.origin",
+                              aroma = "fragrance...aroma",
+                              acidity = "salt...acid",
+                              sweetness = "bitter...sweet",
+                              body = "mouthfeel",
+                              uniformity = "uniform.cup",
+                              clean = "clean.cup",
+                              cupper_points = "cupper.points",
+                              total_points = "total.cup.points") %>% 
+                     filter(total_points > 0 & 
+                            country != "") %>% 
+                     mutate(country = as.factor(country),
+                            species = as.factor(species))
+
+#Join databases
+coffee <- rbind(arabica_t, robusta_t)
+
+#Create regions
+regions <- data.frame(country = c("Brazil", "Burundi", "China", "Colombia", "Costa Rica", "Ivory Coast",
+                                  "Ecuador", "El Salvador", "Ethiopia", "Guatemala", "Haiti",
+                                  "Honduras", "India", "Indonesia", "Japan", "Kenya", "Laos", "Malawi",
+                                  "Mauritius", "Mexico", "Myanmar", "Nicaragua", "Panama", "Papua New Guinea", 
+                                  "Peru", "Philippines", "Rwanda", "Taiwan", "Tanzania", "Thailand", "Uganda", 
+                                  "United States", "United States (Hawaii)", "United States (Puerto Rico)", 
+                                  "Vietnam", "Zambia"),  
+                      region = c("South America", "Africa", "Asia", "South America", "Central America",    
+                                 "Africa", "South America", "Central America", "Africa", "Central America",                                       "Central America", "Central America", "Asia", "Southeast Asia", "Asia", 
+                                 "Africa", "Southeast Asia", "Africa", "Africa", "North America", 
+                                 "Southeast Asia", "Central America", "Central America", "Oceania", 
+                                 "South America", "Southeast Asia", "Africa", "Asia", "Africa", "Southeast Asia",
+                                 "Africa", "North America", "North America", "North America", "Southeast Asia", 
+                                 "Africa"))
+
+#Join databases
+coffee_join <- left_join(coffee, regions)
+```
+
+```{r Visualization 1 - Total reviews by country and region}
+#Tidy data
+coffee_reviews <- coffee_join %>% 
+                              select(country, region) %>% 
+                              count(country, region)
+
+#Histogram: Number of reviews by country (with region highlighted)
+ggplot(coffee_reviews, aes(fct_reorder(country, n), n)) +
+       geom_col(aes(fill = region),
+                color = "white",
+                alpha = 0.7) +
+       coord_flip() +
+       scale_fill_OkabeIto() +
+       theme_minimal() +
+       labs(title = "Total Reviews by Country",
+            x = "Country",
+            y = "Reviews")
+
+#Tidy data
+coffee_reviews_reg <- coffee_join %>% 
+                                  select(region) %>% 
+                                  count(region)
+
+#Histogram: Number of reviews by country
+ggplot(coffee_reviews_reg, aes(fct_reorder(region, n), n)) +
+       geom_col(aes(fill = region),
+                color = "white",
+                alpha = 0.7) +
+       coord_flip() +
+       scale_fill_OkabeIto() +
+       theme_minimal() +
+       labs(title = "Total Reviews by Region",
+            x = "Region",
+            y = "Reviews")
+
+```
+
+```{r Visualization 2 - Total points by country and region}
+#Tidy data
+coffee_countries <- coffee_join %>% 
+                       select(country, region, total_points) %>% 
+                       group_by(country, region) %>% 
+                       summarise(total_points_m = mean(total_points, na.rm = TRUE)) 
+
+#Total score by country (with regions highlighted)
+ggplot(coffee_countries, aes(fct_reorder(country, total_points_m), total_points_m)) +
+       geom_col(aes(fill = region),
+                color = "white",
+                alpha = 0.7) +
+       geom_text(aes(country, total_points_m, label = round(total_points_m, 2)),
+                 nudge_y = -2,
+                 size = 2.5) +
+       coord_flip() +
+       scale_fill_OkabeIto() +
+       theme_minimal() +
+       labs(title = "Total Points by Country",
+            x = "Country",
+            y = "Total Points")
+
+#Tidy data
+coffee_regions <- coffee_join %>%
+                              select(region, total_points) %>% 
+                              group_by(region) %>% 
+                              summarise(total_points_m = mean(total_points, na.rm = TRUE))
+
+#Total score by region
+ggplot(coffee_regions, aes(fct_reorder(region, total_points_m), total_points_m)) +
+       geom_col(aes(fill = region),
+                color = "white",
+                alpha = 0.7) +
+       geom_text(aes(region, total_points_m, label = round(total_points_m, 2)),
+                 nudge_y = -2,
+                 size = 2.5) +
+       coord_flip() +
+       scale_fill_OkabeIto() +
+       theme_minimal() +
+       labs(title = "Total Points by Region",
+            x = "Region",
+            y = "Total Points")
+```
+
+```{r Visualization 3 - Mean quality metrics by species}
+#Tidy data
+coffee_species <- coffee %>% 
+                         select(-country, -year) %>% 
+                         group_by(species) %>% 
+                         summarise(Aroma = mean(aroma, na.rm = TRUE),
+                                   Flavor = mean(flavor, na.rm = TRUE),
+                                   Aftertaste = mean(aftertaste, na.rm = TRUE),
+                                   Acidity = mean(acidity, na.rm = TRUE),
+                                   Body = mean(body, na.rm = TRUE),
+                                   Balance = mean(balance, na.rm = TRUE),
+                                   Uniformity = mean(uniformity, na.rm = TRUE),
+                                   Clean = mean(clean, na.rm = TRUE),
+                                   Sweetness = mean(sweetness, na.rm = TRUE)) %>% 
+                         gather(metric, score, -1) %>% 
+                         mutate(metric = as.factor(metric))
+
+#Mean quality metrics by species
+ggplot(coffee_species, aes(fct_reorder(metric, score), score)) +
+       geom_col(aes(fill = species), 
+                position = "dodge",
+                alpha = 0.7) +
+       coord_flip() +
+       scale_color_OkabeIto() +
+       theme_minimal() +
+       theme_minimal() +
+       labs(title = "Comparison of quality metric scores by coffee bean species",
+            x = "Quality Metrics",
+            y = "Score")
+
+######Other possible versions#####
+
+#Line difference in mean quality metrics by species
+ggplot(coffee_species, aes(fct_reorder(metric, score), score)) +
+       geom_point(aes(color = species),
+                  alpha = 0.7,
+                  size = 5) +
+       geom_line(aes(group = metric)) +
+       coord_flip() +
+       scale_color_OkabeIto() +
+       theme_minimal() +
+       labs(title = "Comparison of quality metric scores by coffee bean species",
+            x = "Quality Metrics",
+            y = "Score")
+
+#Tidy data
+coffee_species_diff <- coffee_species %>% 
+                                      spread(species, score) %>% 
+                                      ungroup() %>% 
+                                      mutate(diff = Arabica - Robusta,
+                                             metric = fct_reorder(metric, diff))
+
+#Point difference in mean quality metrics by species
+ggplot(coffee_species_diff, aes(fct_reorder(metric, diff), diff)) +
+       geom_hline(yintercept = 0,
+                  color = "gray70",
+                  size = 1) +
+       geom_point(color = "cornflowerblue",
+                  alpha = 0.7,
+                  size = 3) +
+       geom_line(aes(group = metric)) +
+       coord_flip() +
+       theme_minimal() +
+       labs(title = "Difference in quality metric scores by coffee bean species (Arabica > Robusta)",
+            x = "Quality Metrics",
+            y = "Difference in Score (Points)")
+```
