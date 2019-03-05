@@ -90,6 +90,9 @@ regions <- data.frame(country = c("Brazil", "Burundi", "China", "Colombia", "Cos
 coffee_join <- left_join(coffee, regions)
 ```
 
+##TN: 
+Great data wrangling! 
+
 ```{r Visualization 1 - Total reviews by country and region}
 #Tidy data
 coffee_reviews <- coffee_join %>% 
@@ -126,6 +129,13 @@ ggplot(coffee_reviews_reg, aes(fct_reorder(region, n), n)) +
             y = "Reviews")
 
 ```
+
+##TN:
+
+I wish there was a little description on what you goal for each visualization is. 
+These graphs look so pretty! 
+
+Are you going to try to show both? or are you still trying to decide on one of them? 
 
 ```{r Visualization 2 - Total points by country and region}
 #Tidy data
