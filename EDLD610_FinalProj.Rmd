@@ -176,7 +176,7 @@ ggplot(coffee_regions, aes(fct_reorder(region, total_points_m), total_points_m))
                 alpha = 0.7) +
        geom_text(aes(region, total_points_m, label = round(total_points_m, 2)),
                  nudge_y = -2,
-                 size = 2.5) +
+                 size = 3.5) +
        coord_flip() +
        scale_fill_OkabeIto() +
        theme_minimal() +
@@ -184,6 +184,11 @@ ggplot(coffee_regions, aes(fct_reorder(region, total_points_m), total_points_m))
             x = "Region",
             y = "Total Points")
 ```
+##TN
+
+Again, for this visualization I think that the plot divided by region is a lot more clear and easier to look at. I would go for the one divided by country only if you are trying to transmit something about a country in particular .. and in that case I woud advice higlighting the bar that represents that country! 
+
+I thin it's useful to have the nambers in each bar since it helps to see the differences, since they are so small. Could you increase the size of the numbers though? (I increased it by 1 point and looks a bit better I think)
 
 ```{r Visualization 3 - Mean quality metrics by species}
 #Tidy data
