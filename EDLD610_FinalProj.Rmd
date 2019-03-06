@@ -135,7 +135,8 @@ ggplot(coffee_reviews_reg, aes(fct_reorder(region, n), n)) +
 I wish there was a little description on what you goal for each visualization is. 
 These graphs look so pretty! 
 
-Are you going to try to show both? or are you still trying to decide on one of them? 
+Are you going to try to show both? or are you still trying to decide on one of them?
+Unless you care to show something specific of certain countries, if youre trying to choose one, I feel that the graph that is just divided by world regions is clearer. You can understand what world regions have more reviews , and that seems to be the main message you want to transmit (unless I'm wrong!) , while the grah by country can be a bit more ocnfusing because the country with most reviews does not correspond to the world region with more reviews for example - un less that is the point you want to transmit with this visualization! 
 
 ```{r Visualization 2 - Total points by country and region}
 #Tidy data
