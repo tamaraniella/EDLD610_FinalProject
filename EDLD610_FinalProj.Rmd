@@ -252,3 +252,8 @@ ggplot(coffee_species_diff, aes(fct_reorder(metric, diff), diff)) +
             x = "Quality Metrics",
             y = "Difference in Score (Points)")
 ```
+
+##TN:
+
+Nice plot ideas!! if I get the message you are trying to trasnmit here (that the quality aspect that robusta and arabica differ the most is Sweetness, and aftertaste in the second place, but by way less of a difference) - I would say that the second version of the plot is my favorite! , I believe is the one transmitting the point the best and it's easy to get! The bar plot is a bit confusing, too many bars stacked together and is harder to identify sweetness as the one with the greates difference. A similar thing happens with the third version of the plot, it's easier to see that sweetnes has the greatest difference but it is harder to interpret. 
+
